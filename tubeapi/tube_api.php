@@ -1,5 +1,6 @@
 <?php
  	require_once 'rest.php';
+    require_once 'tube_db.php';
 
     class TubeApi extends Rest {
 
@@ -7,40 +8,13 @@
         
         public function __construct() {
 			parent::__construct();
-            include_once "db_config.php";
-            $this->conn = new mysqli(dbServer, dbUser, dbPassword, dbName);          
-        }
-
-        function isKeyExpired($r, $userId) {
-            if (!empty($r) and strtotime('now') > (int)$r['expire_date']) {
-                $query = "delete from tokens where user_id = $userId";
-                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-                return true;
-            }
-            return false;
-        }
-
-        function validateAuthorization($userId, $auth) {
-            $jwt = "";
-            if (substr($auth, 0, 7) == "Bearer") {
-                $jwt = substr($auth, 8, strlen($auth));
-            } else {
-                return false;
-            }
-			$query = "select content, expire_date from tokens where user_id = $userId";
-            $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-            if (isKeyExpired($r, $userId)) 
-                return false;
-            $key = $r['content'];
-            $decoded = JWT::decode($jwt, $key, array('HS256'));
-            $decodedArray = (array) $decoded;
-            return $decodedArray['iss'] == 'tubeapi';
-        }
+            $db = new TubeDb();
+            $conn = $this->dbConnect();	
+		}
 		
 		public function processApi() {
 			$func = strtolower(trim(str_replace("/","",$_REQUEST['x'])));
-
-            if((int)method_exists($this, $func) > 0)
+			if((int)method_exists($this, $func) > 0)
 				$this->$func();
 			else
 				$this->response('',404);
@@ -85,6 +59,7 @@
 				$this->response('',204);
             }
         }
+
         function login() {
              if ($this->getRequestMethod() != 'POST') {
                 $this->response('', 406);
@@ -105,30 +80,20 @@
                 $userId = $r['id'];
 			    $query = "select content, expire_date from tokens where user_id = $userId";
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-                // check if the token expired
                 if (!empty($r) and strtotime('now') > (int)$r['expire_date']) {
-                    $query = "delete from tokens where user_id = $userId";
+			        $query = "delete from tokens where user_id = $userId";
                     $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
                     $r = "";
                 }
                 if (!empty($r)) {
-                    $key = $r["content"];
-                    $token = array(
-                        "iss" => "tubeapi"
-                    );
-                    $jwt = JWT::encode($token, $key);
-                    $this->response($this->json(array("token" => $jwt)) ,200);
+                    $this->response($this->json(array("authToken" => $r["content"])) ,200);
                 } else {
-                    $key = self::nextToken();
-                    $token = array(
-                        "iss" => "tubeapi"
-                    );
-                    $jwt = JWT::encode($token, $key);
+                    $token = self::nextToken();
                     $expireDate = strtotime("+1 hour"); 
                     $query = "insert into tokens (content, user_id, expire_date) values('$token'," .
                         "'$userId','$expireDate');";
                     $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-				    $resp = array('token' => $jwt);
+				    $resp = array('authToken' => $token);
 				    $this->response($this->json($resp),200);
                 }
             } else {
@@ -140,14 +105,13 @@
             if ($this->getRequestMethod() != 'DELETE') {
                 $this->response('', 406);
             }
-            $userId = (int)$this->_request['userId']; 
-            $query = "delete from tokens where user_id = $userId";
-            $r = $this->conn->query($query) or die($this->conn->error.__LINE__); 
-            $success = array('status' => "Success", "msg" => "Successfully logged out.");
+			$query = "delete from tokens where user_id = $userId";
+            $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+			$success = array('status' => "Success", "msg" => "Successfully logged out.");
 
 			$this->response($this->json($success),200);
         }
-        
+
         function user() {
             if ($this->getRequestMethod() != "GET") {
                 $this->response('', 406);

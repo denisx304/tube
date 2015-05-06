@@ -4,6 +4,8 @@ require 'vendor/autoload.php';
 
 use \Curl\Curl;
 
+// reset db
+include 'import_db.php';
 
 // terminate execution on assert fail
 assert_options(ASSERT_BAIL, true);
@@ -70,6 +72,6 @@ $curl->get('http://localhost/tubeapi/favorites', array(
 ));
 assert($curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/favorites');
 
-
+echo "Tests Passed\r\n";
 
 ?>

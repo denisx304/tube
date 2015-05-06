@@ -38,6 +38,15 @@
                          $_SERVER['REQUEST_METHOD'] : null;
 		}
 		
+        public function getAuthorization() {
+            $headers = apache_request_headers();
+            if (in_array("Authorization", $headers)) {
+                return $headers["Authorization"];
+            }
+            return null;
+        }
+		
+
 		private function inputs() {
 			switch($this->getRequestMethod()) {
 				case "POST":
