@@ -1,14 +1,14 @@
 <?php
 
     require 'vendor/autoload.php';
- 	require_once 'rest.php';
+    require_once 'rest.php';
 
     class TubeApi extends Rest {
 
-		private $conn = NULL;
+        private $conn = NULL;
         
         public function __construct() {
-			parent::__construct();
+            parent::__construct();
             include_once "db_config.php";
             $this->conn = new mysqli(dbServer, dbUser, dbPassword, dbName);          
         }
@@ -46,14 +46,14 @@
             $decodedArray = (array) $decoded;
             return $decodedArray['iss'] == 'tubeapi';
         }
-		
-		public function processApi() {
-			$func = strtolower(trim(str_replace("/","",$_REQUEST['x'])));
+        
+        public function processApi() {
+            $func = strtolower(trim(str_replace("/","",$_REQUEST['x'])));
             if((int)method_exists($this, $func) > 0)
-				$this->$func();
-			else
-				$this->response('',404);
-		}
+                $this->$func();
+            else
+                $this->response('',404);
+        }
 
         function getHash($username, $password) {
             return sha1(strtolower($username).$password);
@@ -84,14 +84,14 @@
             $keys = array_keys($user);
             $columns = 'username, password';
             $values =  "'" . $user['username'] . "','"  . $user['password'] . "'"; 
-		    $query = 'insert into users (' . $columns . ') values ('. $values . ');';
-			
+            $query = 'insert into users (' . $columns . ') values ('. $values . ');';
+            
             if(!empty($user)) {
-				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-				$success = array('status' => 'Success', 'msg' => 'User Created Successfully.', 'data' => $user);
-				$this->response($this->json($success),200);
-			} else {
-				$this->response('',204);
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                $success = array('status' => 'Success', 'msg' => 'User Created Successfully.', 'data' => $user);
+                $this->response($this->json($success),200);
+            } else {
+                $this->response('',204);
             }
         }
         
@@ -113,9 +113,9 @@
             $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
             
             if ($r->num_rows > 0) {
-				$response = $r->fetch_assoc();	
+                $response = $r->fetch_assoc();    
                 $userId = $response['id'];
-			    $query = "select content, expire_date from tokens where user_id = $userId ;";
+                $query = "select content, expire_date from tokens where user_id = $userId ;";
 
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
                 $hasToken = false;
@@ -149,11 +149,11 @@
                         "'$key','$expireDate');";
 
                     $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-				    $resp = array('token' => $jwt);
-				    $this->response($this->json($resp),200);
+                    $resp = array('token' => $jwt);
+                    $this->response($this->json($resp),200);
                 }
             } else {
-				$this->response('',204);
+                $this->response('',204);
             }
         }
 
@@ -170,7 +170,7 @@
             $r = $this->conn->query($query) or die($this->conn->error.__LINE__); 
             $success = array('status' => "Success", "msg" => "Successfully logged out.");
 
-			$this->response($this->json($success),200);
+            $this->response($this->json($success),200);
         }
         
         function user() {
@@ -180,13 +180,13 @@
             $id = (int)$this->_request['id']; 
             if ($id > 0) {
                 $query = "select * from users where id=$id;";    
-			    $r = $this->conn->query($query) or die($this->conn->error . __LINE__);
-				if($r->num_rows > 0) {
-					$result = $r->fetch_assoc();	
-					$this->response($this->json($result, 200));
-				}
-			}
-			$this->response('',204);
+                $r = $this->conn->query($query) or die($this->conn->error . __LINE__);
+                if($r->num_rows > 0) {
+                    $result = $r->fetch_assoc();    
+                    $this->response($this->json($result, 200));
+                }
+            }
+            $this->response('',204);
         }   
 
         function users() {
@@ -201,89 +201,89 @@
                 while ($row = $r->fetch_assoc()) {
                     $result[] = $row;
                 } 
-				$this->response($this->json($result), 200);
-			}
-			$this->response('',204);
+                $this->response($this->json($result), 200);
+            }
+            $this->response('',204);
         }  
 
         function updateUser() {
             if ($this->getRequestMethod() != "POST") {
                 $this->response('', 406);
             }
-			$user = json_decode(file_get_contents("php://input"),true);
+            $user = json_decode(file_get_contents("php://input"),true);
 
         }
 
-	    function deleteUser() {
-			if($this->getRequestMethod() != "DELETE") {
-				$this->response('',406);
-			}
-			$id = (int)$this->_request['id'];
-			if($id > 0) {				
+        function deleteUser() {
+            if($this->getRequestMethod() != "DELETE") {
+                $this->response('',406);
+            }
+            $id = (int)$this->_request['id'];
+            if($id > 0) {                
                 $query = "delete from users where id=$id;";
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-				$success = array('status' => "Success", "msg" => "Successfully deleted one record.");
-				$this->response($this->json($success),200);
-			} else {
-				$this->response('',204);
+                $success = array('status' => "Success", "msg" => "Successfully deleted one record.");
+                $this->response($this->json($success),200);
+            } else {
+                $this->response('',204);
             }    
         }
         
         function deleteVideo() {
-			if($this->getRequestMethod() != "DELETE") {
-				$this->response('',406);
-			}
-			$id = (int)$this->_request['id'];
-			if($id > 0) {				
+            if($this->getRequestMethod() != "DELETE") {
+                $this->response('',406);
+            }
+            $id = (int)$this->_request['id'];
+            if($id > 0) {                
                 $query = "delete from videos where id=$id;";
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-				$success = array('status' => "Success", "msg" => "Successfully deleted one record.");
-				$this->response($this->json($success),200);
-			} else {
-				$this->response('',204);
+                $success = array('status' => "Success", "msg" => "Successfully deleted one record.");
+                $this->response($this->json($success),200);
+            } else {
+                $this->response('',204);
             }    
         }
 
         function deleteComment() {
-			if($this->getRequestMethod() != "DELETE") {
-				$this->response('',406);
-			}
-			$id = (int)$this->_request['id'];
-			if($id > 0) {				
+            if($this->getRequestMethod() != "DELETE") {
+                $this->response('',406);
+            }
+            $id = (int)$this->_request['id'];
+            if($id > 0) {                
                 $query = "delete from comments where id=$id;";
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-				$success = array('status' => "Success", "msg" => "Successfully deleted one record.");
-				$this->response($this->json($success),200);
-			} else {
-				$this->response('',204);
+                $success = array('status' => "Success", "msg" => "Successfully deleted one record.");
+                $this->response($this->json($success),200);
+            } else {
+                $this->response('',204);
             }    
         }
 
         function deleteFromFavorites() {
-			if($this->getRequestMethod() != "DELETE") {
-				$this->response('',406);
-			}
+            if($this->getRequestMethod() != "DELETE") {
+                $this->response('',406);
+            }
             $userId = (int)$this->_request['user_id'];
             $videoId = (int)$this->_request['video_id'];
             $auth = $this->getAuthorization();
             if (!$this->validateAuthorization($userId, $auth)) {
                 $this->response('',204);
             }
-			if($id > 0) {				
+            if($id > 0) {                
                 $query = "delete from videos where user_id=$userId and video_id=$videoId;";
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-				$success = array('status' => "Success", "msg" => "Successfully deleted one record.");
-				$this->response($this->json($success),200);
-			} else {
-				$this->response('',204);
+                $success = array('status' => "Success", "msg" => "Successfully deleted one record.");
+                $this->response($this->json($success),200);
+            } else {
+                $this->response('',204);
             }    
         }
 
-	
-		function json($data) {
-			if(is_array($data)){
-				return json_encode($data);
-			}
+    
+        function json($data) {
+            if(is_array($data)){
+                return json_encode($data);
+            }
         }
 
 
@@ -291,7 +291,7 @@
             if ($this->getRequestMethod() != "POST") {
                 $this->response('', 406);
             }
-			$comment = json_decode(file_get_contents("php://input"),true);
+            $comment = json_decode(file_get_contents("php://input"),true);
             $auth = $this->getAuthorization();
             if (!$this->validateAuthorization($comment['user_id'], $auth)) {
                 $this->response('',204);
@@ -302,11 +302,11 @@
             
             $query = "insert into comments(". $columns . ") VALUES(".  $values . ");";
             if(!empty($comment)) {
-				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-			    $success = array('status' => "Success", "msg" => "Comment Posted.", "data" => $comment);
-				$this->response($this->json($success),200);
-			} else {
-				$this->response('',204);
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                $success = array('status' => "Success", "msg" => "Comment Posted.", "data" => $comment);
+                $this->response($this->json($success),200);
+            } else {
+                $this->response('',204);
             }
         }
 
@@ -318,13 +318,13 @@
             $id = (int)$this->_request['id'];
             if ($id > 0) {
                 $query = "select * from comments where id=$id;";    
-				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-				if($r->num_rows > 0) {
-					$result = $r->fetch_assoc();	
-					$this->response($this->json($result), 200);
-				}
-			}
-			$this->response('',204);
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                if($r->num_rows > 0) {
+                    $result = $r->fetch_assoc();    
+                    $this->response($this->json($result), 200);
+                }
+            }
+            $this->response('',204);
         }   
         
         function comments() {
@@ -334,16 +334,16 @@
             $id = (int)$this->_request['video_id'];
             if ($id > 0) {
                 $query = "select * from comments where video_id=$id;";    
-				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-				if($r->num_rows > 0) {
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                if($r->num_rows > 0) {
                     $result = array();
                     while ($row = $r->fetch_assoc()) {
                         $result[] = $row;
                     }  
-					$this->response($this->json($result), 200); 
-				}
-			}
-			$this->response('',204);
+                    $this->response($this->json($result), 200); 
+                }
+            }
+            $this->response('',204);
         }
 
         function insertVideo() {
@@ -391,14 +391,14 @@
             $video['path_of_video'] = $filePath;
             $columns = 'user_id, title, path_of_video';
             $values = $video['user_id'] . ',\'' . $video['title'] . '\',\'' . $video['path_of_video'] . "'";
-			$query = "insert into videos(". $columns . ") VALUES(".  $values . ");";
-			 
+            $query = "insert into videos(". $columns . ") VALUES(".  $values . ");";
+             
             if(!empty($video)) {
-				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-			    $success = array('status' => "Success", "msg" => "Video Posted.", "data" => $video);
-				$this->response($this->json($success),200);
-			} else {
-				$this->response('',204);
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                $success = array('status' => "Success", "msg" => "Video Posted.", "data" => $video);
+                $this->response($this->json($success),200);
+            } else {
+                $this->response('',204);
             }
         }
 
@@ -406,7 +406,7 @@
             if ($this->getRequestMethod() != "POST") {
                 $this->response('', 406);
             }
-			$data = json_decode(file_get_contents("php://input"),true);
+            $data = json_decode(file_get_contents("php://input"),true);
             $userId = $data["user_id"];
             $videoId = $data["video_id"];
             $auth = $this->getAuthorization();
@@ -416,11 +416,11 @@
             
             $query = "insert into favorites (user_id, video_id) values($userId, $videoId);";
             if(!empty($data)) {
-				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-			    $success = array('status' => "Success", "msg" => "Added to Favorites.", "data" => $data);
-				$this->response($this->json($success),200);
-			} else {
-				$this->response('',204);
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                $success = array('status' => "Success", "msg" => "Added to Favorites.", "data" => $data);
+                $this->response($this->json($success),200);
+            } else {
+                $this->response('',204);
             }
         }
 
@@ -428,7 +428,7 @@
             if ($this->getRequestMethod() != "POST") {
                 $this->response('', 406);
             }
-			$data = json_decode(file_get_contents("php://input"),true);
+            $data = json_decode(file_get_contents("php://input"),true);
             $userId = $data["user_id"];
             $videoId = $data["video_id"];
             $auth = $this->getAuthorization();
@@ -438,11 +438,11 @@
             
             $query = "insert into history (user_id, video_id) values($userId, $videoId);";
             if(!empty($data)) {
-				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-			    $success = array('status' => "Success", "msg" => "Added to History.", "data" => $data);
-				$this->response($this->json($success),200);
-			} else {
-				$this->response('',204);
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                $success = array('status' => "Success", "msg" => "Added to History.", "data" => $data);
+                $this->response($this->json($success),200);
+            } else {
+                $this->response('',204);
             }
         }
 
@@ -453,13 +453,13 @@
             $id = (int)$this->_request['id'];
             if ($id > 0) {
                 $query = "select * from videos where id=$id;";    
-				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-				if($r->num_rows > 0) {
-					$result = $r->fetch_assoc();	
-					$this->response($this->json($result), 200);
-				}
-			}
-			$this->response('',204);
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                if($r->num_rows > 0) {
+                    $result = $r->fetch_assoc();    
+                    $this->response($this->json($result), 200);
+                }
+            }
+            $this->response('',204);
         }   
         
         function videos() {
@@ -469,16 +469,16 @@
             $id = (int)$this->_request['user_id'];
             if ($id > 0) {
                 $query = "select * videos where user_id=$id;";    
-				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-				if($r->num_rows > 0) {
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                if($r->num_rows > 0) {
                     $result = array();
                     while ($row = $r->fetch_assoc()) {
                         $result[] = $row;
                     }  
-					$this->response($this->json($result), 200); 
-				}
-			}
-			$this->response('',204);
+                    $this->response($this->json($result), 200); 
+                }
+            }
+            $this->response('',204);
         }   
         
         function favorites() {
@@ -492,16 +492,16 @@
             }
             if ($id > 0) {
                 $query = "select * from favorites where user_id=$id;";    
-				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-				if($r->num_rows > 0) {
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                if($r->num_rows > 0) {
                     $result = array();
                     while ($row = $r->fetch_assoc()) {
                         $result[] = $row;
                     }  
-					$this->response($this->json($result), 200); 
-				}
-			}
-			$this->response('',204);
+                    $this->response($this->json($result), 200); 
+                }
+            }
+            $this->response('',204);
         }   
         
         function history() {
@@ -516,19 +516,19 @@
 
             if ($id > 0) {
                 $query = "select * from history where user_id=$id;";    
-				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-				if($r->num_rows > 0) {
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                if($r->num_rows > 0) {
                     $result = array();
                     while ($row = $r->fetch_assoc()) {
                         $result[] = $row;
                     }  
-					$this->response($this->json($result), 200); 
-				}
-			}
-			$this->response('',204);
+                    $this->response($this->json($result), 200); 
+                }
+            }
+            $this->response('',204);
         }   
     }
-	
+    
     $api = new TubeApi;
     $api->processApi();
 
