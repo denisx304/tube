@@ -28,7 +28,8 @@
 						200 => 'OK',
 						201 => 'Created',  
 						204 => 'No Content',  
-						404 => 'Not Found',  
+                        400 => 'Bad Request',
+                        404 => 'Not Found',  
 						406 => 'Not Acceptable');
 			return ($status[$this->_code]) ? $status[$this->_code] : $status[500];
 		}
@@ -39,11 +40,8 @@
 		}
 		
         public function getAuthorization() {
-            $headers = apache_request_headers();
-            if (in_array("Authorization", $headers)) {
-                return $headers["Authorization"];
-            }
-            return null;
+            $headers = (array)apache_request_headers();
+            return $headers["Authorization"];
         }
 		
 
