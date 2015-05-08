@@ -4,6 +4,12 @@ require 'vendor/autoload.php';
 
 use \Curl\Curl;
 
+
+$filename = "uploads/testfile.mp4";
+if (file_exists($filename)) {
+    unlink($filename);
+}
+
 // reset db
 include 'import_db.php';
 
@@ -18,8 +24,8 @@ $data = json_encode(array('username' => 'jonah', 'password' => 'hillisabadactor'
 $curl->post('http://localhost/tubeapi/signUp', $data);
 assert($curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed to insert first user');
 
-$data = json_encode(array('username' => 'strutter', 'password' => 'strutting'));
 
+$data = json_encode(array('username' => 'strutter', 'password' => 'strutting'));
 // insert second user
 $curl->post('http://localhost/tubeapi/signUp', $data);
 assert($curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed to insert second user');
@@ -27,21 +33,33 @@ assert($curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed to i
 $curl->get('http://localhost/tubeapi/users');
 assert($curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/users');
 
-
 $curl->get('http://localhost/tubeapi/user', array(
     'id' => '1',
 ));
 assert($curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/user?id=1');
 
-$data = json_encode(array('user_id' => '1','title' => 'random video','path_of_video' => 'uploads'));
+
+$data = json_encode(array('username' => 'jonah', 'password' => 'hillisabadactor'));
+$curl->post('http://localhost/tubeapi/login', $data);
+
+$resp = (array)$curl->response;
+$auth = 'Bearer ' . $resp['token'];
+$curl->setHeader('Authorization', $auth);
+$file = new CURLFile('testfile.mp4');
+$data = array('json' => json_encode(array(
+        'user_id' => '1',
+        'title' => 'random video',
+
+    )), 
+        'upfile' => $file );
 $curl->post('http://localhost/tubeapi/insertVideo', $data);
+
 assert($curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed to insert video.');
 
 $curl->get('http://localhost/tubeapi/videos', array(
     'user_id' => '1'
 ));
 assert($curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/videos');
-
 
 $data = json_encode(array('user_id' => '1','video_id' => '1','text' => 'Justin Biber sucks!'));
 $curl->post('http://localhost/tubeapi/insertComment', $data);
@@ -51,7 +69,6 @@ $curl->get('http://localhost/tubeapi/comments', array(
     'video_id' => '1'
 ));
 assert($curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/comments');
-
 
 $data = json_encode(array('user_id' => '1', 'video_id' => '1'));
 $curl->post('http://localhost/tubeapi/addToHistory', $data);

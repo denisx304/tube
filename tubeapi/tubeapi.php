@@ -1,4 +1,6 @@
 <?php
+
+    require 'vendor/autoload.php';
  	require_once 'rest.php';
 
     class TubeApi extends Rest {
@@ -12,8 +14,8 @@
         }
 
         function isKeyExpired($r, $userId) {
-            if (!empty($r) and strtotime('now') > (int)$r['expire_date']) {
-                $query = "delete from tokens where user_id = $userId";
+            if (strtotime('now') > (int)$r['expire_date']) {
+                $query = "delete from tokens where user_id = $userId;";
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
                 return true;
             }
@@ -22,16 +24,24 @@
 
         function validateAuthorization($userId, $auth) {
             $jwt = "";
-            if (substr($auth, 0, 7) == "Bearer") {
-                $jwt = substr($auth, 8, strlen($auth));
+
+            if (substr($auth, 0, 6) == "Bearer") {
+                $jwt = substr($auth, 7, strlen($auth));
             } else {
                 return false;
             }
-			$query = "select content, expire_date from tokens where user_id = $userId";
+        
+            $query = "select content, expire_date from tokens where user_id = $userId ;";
             $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-            if (isKeyExpired($r, $userId)) 
+            
+            if ($r->num_rows == 0)
                 return false;
-            $key = $r['content'];
+            $response = $r->fetch_assoc();
+
+            if ($this->isKeyExpired($response, $userId)) 
+                return false;
+
+            $key = $response['content'];
             $decoded = JWT::decode($jwt, $key, array('HS256'));
             $decodedArray = (array) $decoded;
             return $decodedArray['iss'] == 'tubeapi';
@@ -39,7 +49,6 @@
 		
 		public function processApi() {
 			$func = strtolower(trim(str_replace("/","",$_REQUEST['x'])));
-
             if((int)method_exists($this, $func) > 0)
 				$this->$func();
 			else
@@ -85,6 +94,7 @@
 				$this->response('',204);
             }
         }
+        
         function login() {
              if ($this->getRequestMethod() != 'POST') {
                 $this->response('', 406);
@@ -97,22 +107,31 @@
             $user['password'] = self::getHash($user['username'], $user['password']);
             $keys = array_keys($user);
 
-            $query = "select id from users where username = $user->username and password = " .
-                     " $user->password;";
+            $query = "select id from users where username = '" . $user['username'] . "' and password = '" .
+                      $user['password'] . "';";
+        
+            $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+            
+            if ($r->num_rows > 0) {
+				$response = $r->fetch_assoc();	
+                $userId = $response['id'];
+			    $query = "select content, expire_date from tokens where user_id = $userId ;";
 
-			$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-            if (!empty($r)) {
-                $userId = $r['id'];
-			    $query = "select content, expire_date from tokens where user_id = $userId";
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                $hasToken = false;
                 // check if the token expired
-                if (!empty($r) and strtotime('now') > (int)$r['expire_date']) {
-                    $query = "delete from tokens where user_id = $userId";
-                    $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-                    $r = "";
+                if ($r->num_rows > 0) {
+                    $hasToken = true;
+                    $response = $r->fetch_assoc();
+                    if ( strtotime('now') > (int)$response['expire_date']) {
+                        $query = "delete from tokens where user_id = $userId";
+                        $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                        $r = null;
+                    }
                 }
-                if (!empty($r)) {
-                    $key = $r["content"];
+                if (r != null and $hasToken) {
+                    $response = $r->fetch_assoc();
+                    $key = $response["content"];
                     $token = array(
                         "iss" => "tubeapi"
                     );
@@ -123,10 +142,12 @@
                     $token = array(
                         "iss" => "tubeapi"
                     );
-                    $jwt = JWT::encode($token, $key);
+                    $jwt = JWT::encode($token, $key); 
+
                     $expireDate = strtotime("+1 hour"); 
-                    $query = "insert into tokens (content, user_id, expire_date) values('$token'," .
-                        "'$userId','$expireDate');";
+                    $query = "insert into tokens (user_id, content, expire_date) values('$userId'," .
+                        "'$key','$expireDate');";
+
                     $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
 				    $resp = array('token' => $jwt);
 				    $this->response($this->json($resp),200);
@@ -141,6 +162,10 @@
                 $this->response('', 406);
             }
             $userId = (int)$this->_request['userId']; 
+            $auth = $this->getAuthorization();
+            if (!$this->validateAuthorization($userId, $auth)) {
+                $this->response('',204);
+            }
             $query = "delete from tokens where user_id = $userId";
             $r = $this->conn->query($query) or die($this->conn->error.__LINE__); 
             $success = array('status' => "Success", "msg" => "Successfully logged out.");
@@ -240,7 +265,10 @@
 			}
             $userId = (int)$this->_request['user_id'];
             $videoId = (int)$this->_request['video_id'];
-
+            $auth = $this->getAuthorization();
+            if (!$this->validateAuthorization($userId, $auth)) {
+                $this->response('',204);
+            }
 			if($id > 0) {				
                 $query = "delete from videos where user_id=$userId and video_id=$videoId;";
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
@@ -264,9 +292,15 @@
                 $this->response('', 406);
             }
 			$comment = json_decode(file_get_contents("php://input"),true);
+            $auth = $this->getAuthorization();
+            if (!$this->validateAuthorization($comment['user_id'], $auth)) {
+                $this->response('',204);
+            }
+            
             $columns = 'user_id, video_id, text';
             $values = $comment['user_id'] . ',' . $comment['video_id'] . ',\'' . $comment['text'] . "'";
-			$query = "insert into comments(". $columns . ") VALUES(".  $values . ");";
+            
+            $query = "insert into comments(". $columns . ") VALUES(".  $values . ");";
             if(!empty($comment)) {
 				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
 			    $success = array('status' => "Success", "msg" => "Comment Posted.", "data" => $comment);
@@ -316,56 +350,49 @@
             if ($this->getRequestMethod() != "POST") {
                 $this->response('', 406);
             }
-            /*
-            $target_dir = "uploads/";
-            $target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
-            $uploadOk = 1;
-            $imageFileType = pathinfo($target_file,PATHINFO_EXTENSION);
-            // Check if image file is a actual image or fake image
-            if(isset($_POST["submit"])) {
-                $check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
-                if($check !== false) {
-                    echo "File is an image - " . $check["mime"] . ".";
-                    $uploadOk = 1;
-                } else {
-                    echo "File is not an image.";
-                    $uploadOk = 0;
-                }
+            $auth = $this->getAuthorization();
+            
+            $video = json_decode($_POST['json'], true); 
+
+
+            if (!$this->validateAuthorization($video['user_id'], $auth)) {
+                $this->response('',204);
             }
-            // Check if file already exists
-            if (file_exists($target_file)) {
-                echo "Sorry, file already exists.";
-                $uploadOk = 0;
+
+
+            if (!isset($_FILES['upfile']['error']) || is_array($_FILES['upfile']['error'])) {
+                $this->response($this->json(array("Error" => 'Invalid parameters')), 400);
             }
-            // Check file size
-            if ($_FILES["fileToUpload"]["size"] > 500000) {
-                echo "Sorry, your file is too large.";
-                $uploadOk = 0;
+
+            // You should also check filesize here. 
+            if ($_FILES['upfile']['size'] > 10000000) {
+                $this->response($this->json(array("Error" => 'Exceeded filesize limit.')), 400);
             }
-            // Allow certain file formats
-            if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg"
-            && $imageFileType != "gif" ) {
-                echo "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
-                $uploadOk = 0;
+         
+            $videoFileType = pathinfo($_FILES['upfile']['name'],PATHINFO_EXTENSION);
+
+            
+            if (!in_array($videoFileType, array("mp4", "wmv"))) {
+                $this->response($this->json(array("Error" => "Invalid file format.")), 400);
             }
-            // Check if $uploadOk is set to 0 by an error
-            if ($uploadOk == 0) {
-                echo "Sorry, your file was not uploaded.";
-            // if everything is ok, try to upload file
-            } else {
-                if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
-                    echo "The file ". basename( $_FILES["fileToUpload"]["name"]). " has been uploaded.";
-                } else {
-                    echo "Sorry, there was an error uploading your file.";
-                }
+
+
+
+            $filePath = 'uploads/' . $_FILES['upfile']['name'];
+
+            if ($_FILES['upfile']['name'] == "" or file_exists($filePath) ) {
+                $this->response($this->json(array("Error" => $_FILES['upfile']['name'])), 400);
             }
-            */
-            $video = json_decode(file_get_contents("php://input"),true);
+ 
+            if (!move_uploaded_file($_FILES['upfile']['tmp_name'], $filePath)) {
+                $this->response($this->json(array("Error" => "Failed to move uploaded file.")), 400);
+            }
+            
+            $video['path_of_video'] = $filePath;
             $columns = 'user_id, title, path_of_video';
             $values = $video['user_id'] . ',\'' . $video['title'] . '\',\'' . $video['path_of_video'] . "'";
 			$query = "insert into videos(". $columns . ") VALUES(".  $values . ");";
-			//$this->response($this->json(array("query" => $query)),200);
-            
+			 
             if(!empty($video)) {
 				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
 			    $success = array('status' => "Success", "msg" => "Video Posted.", "data" => $video);
@@ -382,6 +409,11 @@
 			$data = json_decode(file_get_contents("php://input"),true);
             $userId = $data["user_id"];
             $videoId = $data["video_id"];
+            $auth = $this->getAuthorization();
+            if (!$this->validateAuthorization($userId, $auth)) {
+                $this->response('',204);
+            }
+            
             $query = "insert into favorites (user_id, video_id) values($userId, $videoId);";
             if(!empty($data)) {
 				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
@@ -399,6 +431,11 @@
 			$data = json_decode(file_get_contents("php://input"),true);
             $userId = $data["user_id"];
             $videoId = $data["video_id"];
+            $auth = $this->getAuthorization();
+            if (!$this->validateAuthorization($userId, $auth)) {
+                $this->response('',204);
+            }
+            
             $query = "insert into history (user_id, video_id) values($userId, $videoId);";
             if(!empty($data)) {
 				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
@@ -449,6 +486,10 @@
                 $this->response('', 406);
             }
             $id = (int)$this->_request['user_id'];
+            $auth = $this->getAuthorization();
+            if (!$this->validateAuthorization($id, $auth)) {
+                $this->response('',204);
+            }
             if ($id > 0) {
                 $query = "select * from favorites where user_id=$id;";    
 				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
@@ -468,6 +509,11 @@
                 $this->response('', 406);
             }
             $id = (int)$this->_request['user_id'];
+            $auth = $this->getAuthorization();
+            if (!$this->validateAuthorization($id, $auth)) {
+                $this->response('',204);
+            }
+
             if ($id > 0) {
                 $query = "select * from history where user_id=$id;";    
 				$r = $this->conn->query($query) or die($this->conn->error.__LINE__);
