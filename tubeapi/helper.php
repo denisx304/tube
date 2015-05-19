@@ -1,7 +1,8 @@
 <?php
     class Helper {
         
-        /*  Source sql script from file.
+        /**  
+         *  Source sql script from file.
          *  
          *  Parse sql script file line by line and source it.
          *

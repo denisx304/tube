@@ -23,7 +23,7 @@
             $this->conn = new mysqli(dbServer, dbUser, dbPassword, dbName);          
         }
 
-        /*
+        /**
          *  Check if a token key is expired. 
          *
          *  @param array $r
@@ -41,7 +41,8 @@
             return false;
         }
 
-        /*  Validate if user auhorization is valid.
+        /**  
+         *  Validate if user auhorization is valid.
          *  
          *  Check if the auth has the proper format, it decodes
          *  the jwt and will check if the key is expired and it will return true
@@ -78,7 +79,8 @@
             return $decodedArray['iss'] == 'tubeapi';
         }
 
-        /*  Process requests and redirect accordingly.
+        /**  
+         * Process requests and redirect accordingly.
          *  
          *  If it's a valid request then it will process it, otherwise
          *  it returns 404.
@@ -93,7 +95,8 @@
                 $this->response('',404);
         }
 
-        /*  Compute hash value for username and password.
+        /**  
+         *  Compute hash value for username and password.
          *  
          *  Compute the sha1 hash from the username concatenated 
          *  with the password, so we can avoid detecting users with
@@ -109,7 +112,8 @@
             return sha1(strtolower($username).$password);
         }
 
-        /*  Compute random string of bytes for token.
+        /**  
+         * Compute random string of bytes for token.
          *
          *  @return string
          */
@@ -118,7 +122,8 @@
             return bin2hex(openssl_random_pseudo_bytes(10));
         }
 
-         /*  Validate username and password format.
+        /**
+         * Validate username and password format.
          *   
          *  @param string $username
          *  @param string $password
@@ -133,13 +138,14 @@
             return true;
         }
 
-        /*  Sign up user.
+        /**
+         *  Sign up user.
          *
          *  Process username and password for a user, respond
          *  with code 200 if succesful, 406 if the request is invalid
          *  
          *
-         * @return void
+         *  @return void
          */
         
         function signUp() {
@@ -167,7 +173,8 @@
             }
         }
 
-        /*  Return token to user.
+        /**  
+         *  Return token to user.
          *  
          *  Generate a random token which expires in one hour if the 
          *  user doesn't already have one generated in which case we return
@@ -177,7 +184,7 @@
          *  the password is wrong, respond with 200 if succesful and return 
          *  the token in json.
          *
-         * @return void
+         *  @return void
          */
         
         function login() {
@@ -244,14 +251,14 @@
         }
 
 
-        /*  Perform logout.
+        /**  Perform logout.
          *  
          *  If the user provides valid authentification 
          *  details delete the token from the db.
          *  Respond with 204 if the authorization is invalid, 
          *  with 200 if the logout succeeds.
          *
-         * @return void
+         *  @return void
          */
         function logout() {
             if ($this->getRequestMethod() != 'DELETE') {
@@ -268,13 +275,14 @@
             $this->response(json_encode($success), 200);
         }
 
-        /*  Get user.
+        /**  
+         *  Get user.
          *  
          *  Respond with 200 and return user details if
          *  the user id is valid, respond with 406 if 
          *  the requst is invalid, 204 if the user doesn't exist.
          *
-         * @return void
+         *  @return void
          */
         function user() {
             if ($this->getRequestMethod() != "GET") {
@@ -296,13 +304,13 @@
         }   
 
 
-        /*  Get users.
-         *  
-         *  
+        /**  
+         *  Get users.
+         *   
          *  Respond with 204 if there are no users, respond with
          *  200 and return json with details for all users otherwise.
          *
-         * @return void
+         *  @return void
          */
 
         function users() {
@@ -323,7 +331,8 @@
             }
         }
 
-      /*  Delete user.
+      /**  
+       *  Delete user.
        *
        *
        *  @return void
@@ -344,11 +353,12 @@
             }    
         }
 
-      /*  Delete video.
-       *
-       *
-       *  @return void
-       */ 
+        /**  
+        *  Delete video.
+        *
+        *
+        *  @return void
+        */ 
 
         function deleteVideo() {
             if($this->getRequestMethod() != "DELETE") {
@@ -365,11 +375,12 @@
             }    
         }
 
-      /*  Delete comment.
-       *
-       *
-       *  @return void
-       */ 
+        /**  
+         * Delete comment.
+         *
+         * 
+         *  @return void
+         */ 
 
         function deleteComment() {
             if($this->getRequestMethod() != "DELETE") {
@@ -386,11 +397,12 @@
             }    
         }
 
-      /*  Delete video from favorites.
-       *
-       *
-       *  @return void
-       */ 
+        /**  
+         * Delete video from favorites.
+        *
+        *
+        *  @return void
+        */ 
 
         function deleteFromFavorites() {
             if($this->getRequestMethod() != "DELETE") {
@@ -412,14 +424,15 @@
             }    
         }
 
-       /*  Comment on a video.
-        *
-        *  Respond with 406 if the authorization token
-        *  is invalid. Respond with 200 if the comment
-        *  was successfully posted.  
-        *   
-        *  @return void
-        */ 
+        /**  
+         * Comment on a video.
+         *
+         *  Respond with 406 if the authorization token
+         *  is invalid. Respond with 200 if the comment
+         *  was successfully posted.  
+         *   
+         *  @return void
+         */ 
 
         function insertComment() {
             if ($this->getRequestMethod() != "POST") {
@@ -440,14 +453,15 @@
             $this->response(json_encode($success),200);
         }
 
-        /*  Get comment.
+        /**  
+         *  Get comment.
          * 
          *  Respond with 200 and return json with comment 
          *  if the comment exists, respond with 204
          *  if it doesn't exist and with 400 if the
          *  request is invalid.
          *
-         * @return void
+         *  @return void
          */
 
         function comment() {
@@ -469,7 +483,8 @@
             }
         }   
 
-        /*  Get the comments for a video.
+        /**  
+         *  Get the comments for a video.
          * 
          *  Respond with 200 and return json with comments 
          *  if the video exists, respond with 204
@@ -500,7 +515,9 @@
                 $this->response('', 400);
             }    
         }
-        /*  Upload video.
+
+        /**  
+         * Upload video.
          * 
          * The request body should have the video file and a json
          * object containing the video details.
@@ -512,7 +529,6 @@
          *
          * @return void
          */
-
 
         function insertVideo() {
             if ($this->getRequestMethod() != "POST") {
@@ -561,7 +577,8 @@
         }
 
 
-        /*  Add video to user favorites.
+        /**  
+         *  Add video to user favorites.
          *
          *  Respond with 200 if the video was succesfully
          *  added to favorites.
@@ -587,7 +604,8 @@
             $this->response(json_encode($success),200);
         }
 
-        /*  Add video to user history.
+        /**  
+         *  Add video to user history.
          *
          *  Respond with 200 if the video was succesfully
          *  added to user history. Respond with 400 if the
@@ -614,7 +632,8 @@
             $this->response(json_encode($success),200);
         }
 
-        /*  Get video
+        /**  
+         *  Get video
          *  
          *  Respond with 400 if the request is invalid, 
          *  with 204 if there is no video with the requested id.
@@ -643,15 +662,16 @@
             }
         }
 
-       /*  Get videos.
-        *  
-        *  Respond with 400 if the request is invalid, 
-        *  with 204 if there is no video with the requested id.
-        *  Respond with 200 and return json with all the videos 
-        *  details for that user if successful.
-        *
-        *  @return void
-        */
+        /**  
+         * Get videos.
+         *  
+         *  Respond with 400 if the request is invalid, 
+         *  with 204 if there is no video with the requested id.
+         *  Respond with 200 and return json with all the videos 
+         *  details for that user if successful.
+         *
+         *  @return void
+         */
         
         function videos() {
             if ($this->getRequestMethod() != "GET") {
@@ -675,14 +695,15 @@
             }
         }   
 
-        /*  Get favorites.
+        /**  
+         *  Get favorites.
          *
          *  Respond with 400 if the request is invalid.
          *  Respond with 204 if no user with that id exists.
          *  Respond with 200 and return json with videos details for favorites for 
          *  that user.
          *
-         * @return void
+         *  @return void
          */
 
         function favorites() {
@@ -711,17 +732,16 @@
             }     
         }   
         
-        /*  Get history.
+        /**  
+         *  Get history.
          *
          *  Respond with 400 if the request is invalid.
          *  Respond with 204 if no user with that id exists.
          *  Respond with 200 and return json with videos details of history for 
          *  that user.
          *
-         * @return void
+         *  @return void
          */
-
-
 
         function history() {
             if ($this->getRequestMethod() != "GET") {

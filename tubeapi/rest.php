@@ -14,7 +14,8 @@
             $this->inputs();
         }
 
-        /*  Respond method.
+        /**  
+         *  Respond method.
          *
          *  Respond with the given arguments
          *  and exit.
@@ -32,7 +33,8 @@
             exit;
         }
 
-        /*  Get status message.
+        /**  
+         *  Get status message.
          *  
          *  Return appropriate status message.
          *
@@ -50,7 +52,8 @@
             return ($status[$this->_code]) ? $status[$this->_code] : $status[500];
         }
 
-        /* Get request method.
+        /** 
+         * Get request method.
          *
          *   
          *  @return string
@@ -61,7 +64,8 @@
                          $_SERVER['REQUEST_METHOD'] : null;
         }
 
-        /*  Get authorization token
+        /**  
+         *  Get authorization token
          *  
          *  @return string
          */
@@ -71,7 +75,8 @@
             return $headers["Authorization"];
         }
 
-        /*  Get input according to the request method.
+        /**  
+         * Get input according to the request method.
          *   
          *  @return void
          */ 
@@ -95,9 +100,9 @@
             }
         }        
         
-        /*  Clean inputs.
+        /**  
+         *  Clean inputs.
          *  
-         *
          *  @param string
          *
          *  @return void
@@ -117,8 +122,10 @@
                 $clean_input = trim($data);
             }
             return $clean_input;
-        }        
-        /* Set headers.
+        }  
+
+        /** 
+         * Set headers.
          *  
          * @return void
          */
