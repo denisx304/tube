@@ -32,3 +32,8 @@ Running tests:
 vendor/bin/phpunit tubeapi_test.php 
 
 ```
+
+Generate documentation
+```
+./vendor/bin/phpdoc -f targetFile -t targetFolder
+```
