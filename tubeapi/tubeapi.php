@@ -294,7 +294,7 @@
                 $r = $this->conn->query($query) or die($this->conn->error . __LINE__);
                 if($r->num_rows > 0) {
                     $result = $r->fetch_assoc();    
-                    $this->response(json_encode($result, 200));
+                    $this->response(json_encode($result), 200);
                 } else {
                     $this->response('', 204);
                 }
