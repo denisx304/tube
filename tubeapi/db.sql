@@ -145,7 +145,7 @@ DROP TABLE IF EXISTS `tubedb`.`tokens` ;
 
 CREATE TABLE IF NOT EXISTS `tubedb`.`tokens` (
    `user_id` INT NOT NULL,
-   `content` VARCHAR(32) NOT NULL,
+   `content` VARCHAR(512) NOT NULL,
    `expire_date` INT NOT NULL,
     PRIMARY KEY (`user_id`))     
 ENGINE = InnoDB;

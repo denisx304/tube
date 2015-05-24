@@ -73,10 +73,8 @@
             if ($this->isKeyExpired($response, $userId)) 
                 return false;
 
-            $key = $response['content'];
-            $decoded = JWT::decode($jwt, $key, array('HS256'));
-            $decodedArray = (array) $decoded;
-            return $decodedArray['iss'] == 'tubeapi';
+            $jwt = $response['content'];
+            return $auth == $jwt;
         }
 
         /**  
@@ -218,31 +216,26 @@
                     if ( strtotime('now') > (int)$response['expire_date']) {
                         $query = "delete from tokens where user_id = $userId";
                         $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-                        $r = null;
+                        $hasToken = false; 
                     }
                 }
-                if ($r != null and $hasToken) {
-                    $response = $r->fetch_assoc();
-                    $key = $response["content"];
-                    $token = array(
-                        "iss" => "tubeapi"
-                    );
-                    $jwt = JWT::encode($token, $key);
-                    $resp = array('token' => 'Bearer ' .$jwt);
+                if ($hasToken) {
+                    $jwt = $response["content"];
+                    $resp = array('token' =>$jwt);
                     $this->response(json_encode($resp), 200);
                 } else {
                     $key = self::nextToken();
                     $token = array(
                         "iss" => "tubeapi"
                     );
-                    $jwt = JWT::encode($token, $key); 
+                    $jwt =  'Bearer ' .JWT::encode($token, $key); 
 
                     $expireDate = strtotime("+1 hour"); 
                     $query = "insert into tokens (user_id, content, expire_date) values('$userId'," .
-                        "'$key','$expireDate');";
+                        "'$jwt','$expireDate');";
 
                     $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-                    $resp = array('token' => 'Bearer ' .$jwt);
+                    $resp = array('token' =>$jwt);
                     $this->response(json_encode($resp), 200);
                 }
             } else {

@@ -66,9 +66,13 @@ class TubeApiTest extends PHPUnit_Framework_TestCase {
      */
 
     public function testLoginUserS() {
-        $data = json_encode(array('username' => 'strutter', 'password' => 'strutting'));
+        $data = json_encode(array('username' => 'jonah', 'password' => 'hillisabadactor'));
         self::$curl->post('http://localhost/tubeapi/login', $data);
         $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/login');
+        $resp = (array)self::$curl->response;
+        $auth = $resp['token'];
+        
+        self::$curl->setHeader('Authorization', $auth);
     }
 
 
@@ -80,9 +84,12 @@ class TubeApiTest extends PHPUnit_Framework_TestCase {
         $data = json_encode(array('username' => 'jonah', 'password' => 'hillisabadactor'));
         self::$curl->post('http://localhost/tubeapi/login', $data);
         $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/login');
+            
+    
         $resp = (array)self::$curl->response;
         $auth = $resp['token'];
         self::$curl->setHeader('Authorization', $auth);
+    
     }
 
 
