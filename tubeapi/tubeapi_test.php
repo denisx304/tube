@@ -53,10 +53,50 @@ class TubeApiTest extends PHPUnit_Framework_TestCase {
      * @depends testSignUp
      */
 
+    public function testLoginUser() {
+        $data = json_encode(array('username' => 'strutter', 'password' => 'strutting'));
+        self::$curl->post('http://localhost/tubeapi/login', $data);
+        $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/login');
+        $resp = (array)self::$curl->response;
+        $auth = $resp['token'];
+        self::$curl->setHeader('Authorization', $auth);
+    }
+    /**
+     * @depends testLoginUser
+     */
+
+    public function testLoginUserS() {
+        $data = json_encode(array('username' => 'strutter', 'password' => 'strutting'));
+        self::$curl->post('http://localhost/tubeapi/login', $data);
+        $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/login');
+    }
+
+
+    /**
+     * @depends testSignUp
+     */
+
     public function testLogin() {
         $data = json_encode(array('username' => 'jonah', 'password' => 'hillisabadactor'));
         self::$curl->post('http://localhost/tubeapi/login', $data);
+        $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/login');
+        $resp = (array)self::$curl->response;
+        $auth = $resp['token'];
+        self::$curl->setHeader('Authorization', $auth);
     }
+
+
+    /**
+     * @depends testLogin
+    */
+
+    public function testLoginTry() {
+        $data = json_encode(array('username' => 'jonah', 'password' => 'hillisabadactor'));
+        self::$curl->post('http://localhost/tubeapi/login', $data);
+        $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/login');
+    }
+
+
 
     /*
      * @depends testLogin
@@ -68,9 +108,6 @@ class TubeApiTest extends PHPUnit_Framework_TestCase {
             unlink($filename);
         }
 
-        $resp = (array)self::$curl->response;
-        $auth = $resp['token'];
-        self::$curl->setHeader('Authorization', $auth);
         $file = new CURLFile('testfile.mp4');
         $data = array('json' => json_encode(array(
                 'user_id' => '1',

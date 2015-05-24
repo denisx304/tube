@@ -221,7 +221,7 @@
                         $r = null;
                     }
                 }
-                if (r != null and $hasToken) {
+                if ($r != null and $hasToken) {
                     $response = $r->fetch_assoc();
                     $key = $response["content"];
                     $token = array(
