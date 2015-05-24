@@ -71,7 +71,6 @@ class TubeApiTest extends PHPUnit_Framework_TestCase {
         $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/login');
         $resp = (array)self::$curl->response;
         $auth = $resp['token'];
-        
         self::$curl->setHeader('Authorization', $auth);
     }
 
@@ -140,6 +139,18 @@ class TubeApiTest extends PHPUnit_Framework_TestCase {
      * @depends testUpload
      */
 
+    public function testVideo() {
+        self::$curl->get('http://localhost/tubeapi/video', array(
+            'id' => '1'
+        ));
+        $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/video?id=1');
+    }
+
+
+    /*
+     * @depends testUpload
+     */
+
     public function testInsertComment() {
         $data = json_encode(array('user_id' => '1','video_id' => '1','text' => 'Justin Biber sucks!'));
         self::$curl->post('http://localhost/tubeapi/insertComment', $data);
@@ -154,10 +165,87 @@ class TubeApiTest extends PHPUnit_Framework_TestCase {
         self::$curl->get('http://localhost/tubeapi/comments', array(
             'video_id' => '1'
         ));
-    
         $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/comments');
     }
-    
+   
+    /*
+     * @depends testUpload
+     */
+
+    public function testComment() {
+        self::$curl->get('http://localhost/tubeapi/comment', array(
+            'id' => '1'
+        ));
+        $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/comment?id=1');
+    } 
+
+    /*
+     * @depends testComment
+     */
+
+    public function testCommentLike() {
+        $data = json_encode(array('id' => '1'));
+        self::$curl->post('http://localhost/tubeapi/likeComment', $data);
+        $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/likeComment');
+        
+        self::$curl->get('http://localhost/tubeapi/comment', array(
+            'id' => '1'
+        ));
+        $resp = (array)self::$curl->response;
+        $likes = (int)$resp['likes'];
+        $this->assertTrue($likes == 1, 'Incorrect number of likes');
+    }
+
+    /*
+     * @depends testComment
+     */
+
+    public function testCommentDislike() {
+        $data = json_encode(array('id' => '1'));
+        self::$curl->post('http://localhost/tubeapi/dislikeComment', $data);
+        $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/dislikeComment');
+        
+        self::$curl->get('http://localhost/tubeapi/comment', array(
+            'id' => '1'
+        ));
+        $resp = (array)self::$curl->response;
+        $dislikes = (int)$resp['dislikes'];
+        $this->assertTrue($dislikes == 1, 'Incorrect number of dislikes');
+    }
+
+    /*
+     * @depends testComment
+     */
+
+    public function testVideoLike() {
+        $data = json_encode(array('id' => '1'));
+        self::$curl->post('http://localhost/tubeapi/likeVideo', $data);
+        $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/likeVideo');
+        
+        self::$curl->get('http://localhost/tubeapi/comment', array(
+            'id' => '1'
+        ));
+        $resp = (array)self::$curl->response;
+        $likes = (int)$resp['likes'];
+        $this->assertTrue($likes == 1, 'Incorrect number of likes');
+    }
+
+    /*
+     * @depends testVideo
+     */
+
+    public function testVideoDislike() {
+        $data = json_encode(array('id' => '1'));
+        self::$curl->post('http://localhost/tubeapi/dislikeVideo', $data);
+        $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/dislikeVideo');
+        
+        self::$curl->get('http://localhost/tubeapi/comment', array(
+            'id' => '1'
+        ));
+        $resp = (array)self::$curl->response;
+        $dislikes = (int)$resp['dislikes'];
+        $this->assertTrue($dislikes == 1, 'Incorrect number of dislikes');
+    }
     /*
      * @depends testUpload
      */
@@ -199,6 +287,7 @@ class TubeApiTest extends PHPUnit_Framework_TestCase {
         ));
         $this->assertTrue(self::$curl->response_headers['Status-Line'] == 'HTTP/1.1 200 OK', 'Failed /tubeapi/favorites');
     }
+
 }
     
 ?>

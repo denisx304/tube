@@ -646,6 +646,8 @@
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
                 if($r->num_rows > 0) {
                     $result = $r->fetch_assoc();    
+                    $query = "update videos set views = views + 1 where id =$id;";
+                    $r = $this->conn->query($query) or die($this->conn->error.__LINE__); 
                     $this->response(json_encode($result), 200);
                 } else {
                     $this->response('', 204);
@@ -673,12 +675,13 @@
             $id = (int)$this->_request['user_id'];
             if ($id > 0) {
                 $query = "select * videos where user_id=$id;";    
-                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__); 
                 if($r->num_rows > 0) {
                     $result = array();
                     while ($row = $r->fetch_assoc()) {
                         $result[] = $row;
                     }  
+
                     $this->response(json_encode($result), 200); 
                 } else {
                     $this->response('',204);
@@ -761,7 +764,137 @@
             } else {
                 $this->response('', 400);
             }
+        }
+        
+        /**  
+         *  Like a video
+         *  
+         *  Respond with 400 if the request is invalid, 
+         *  with 204 if there is no video with the requested id.
+         *  Respond with 200 and update likes if successful.
+         *  if successful.
+         *
+         *  @return void
+         */
+
+        function likeVideo() {
+            if ($this->getRequestMethod() != "POST") {
+                $this->response('', 406);
+            }
+
+            $data = json_decode(file_get_contents("php://input"),true);
+            $id = (int)$data['id'];
+            if ($id > 0) {
+                $query = "select * from videos where id=$id;";    
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                if($r->num_rows > 0) {
+                    $result = $r->fetch_assoc();    
+                    $query = "update videos set likes = likes + 1 where id =$id;";
+                    $r = $this->conn->query($query) or die($this->conn->error.__LINE__); 
+                    $this->response('', 200);
+                } else {
+                    $this->response('', 204);
+                }
+            } else {
+                $this->response('', 400);
+            }
+        }
+        /**  
+         *  Dislike a video.
+         *  
+         *  Respond with 400 if the request is invalid, 
+         *  with 204 if there is no video with the requested id.
+         *  Respond with 200 and update dislikes if successful.
+         *  if successful.
+         *
+         *  @return void
+         */
+
+        function dislikeVideo() {
+            if ($this->getRequestMethod() != "POST") {
+                $this->response('', 406);
+            }
+            $data = json_decode(file_get_contents("php://input"),true);
+            $id = (int)$data['id'];
+            if ($id > 0) {
+                $query = "select * from videos where id=$id;";    
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                if($r->num_rows > 0) {
+                    $result = $r->fetch_assoc();    
+                    $query = "update videos set dislikes = dislikes + 1 where id =$id;";
+                    $r = $this->conn->query($query) or die($this->conn->error.__LINE__); 
+                    $this->response('', 200);
+                } else {
+                    $this->response('', 204);
+                }
+            } else {
+                $this->response('', 400);
+            }
         }   
+
+        /**  
+         *  Like comment.
+         * 
+         *  Respond with 200 and increment likes
+         *  if the comment exists, respond with 204
+         *  if it doesn't exist and with 400 if the
+         *  request is invalid.
+         *
+         *  @return void
+         */
+
+        function likeComment() {
+            if ($this->getRequestMethod() != "POST") {
+                $this->response('', 406);
+            }
+            $data = json_decode(file_get_contents("php://input"),true);
+            $id = (int)$data['id'];
+            if ($id > 0) {
+                $query = "select * from comments where id=$id;";    
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                if($r->num_rows > 0) {
+                    $query = "update comments set likes = likes + 1 where id =$id;";
+                    $r = $this->conn->query($query) or die($this->conn->error.__LINE__); 
+                    $this->response('', 200);
+                } else {
+                    $this->response('', 204);
+                }
+            } else {
+                $this->response('', 400);
+            }
+        }
+
+        /**  
+         *  Dislike comment.
+         * 
+         *  Respond with 200 and increment dislikes
+         *  if the comment exists, respond with 204
+         *  if it doesn't exist and with 400 if the
+         *  request is invalid.
+         *
+         *  @return void
+         */
+
+        function dislikeComment() {
+            if ($this->getRequestMethod() != "POST") {
+                $this->response('', 406);
+            }
+            $data = json_decode(file_get_contents("php://input"),true);
+            $id = (int)$data['id'];
+            if ($id > 0) {
+                $query = "select * from comments where id=$id;";    
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+                if($r->num_rows > 0) {
+                    $query = "update comments set dislikes = dislikes + 1 where id =$id;";
+                    $r = $this->conn->query($query) or die($this->conn->error.__LINE__); 
+                    $this->response('', 200);
+                } else {
+                    $this->response('', 204);
+                }
+            } else {
+                $this->response('', 400);
+            }
+        }    
     }
     
     $api = new TubeApi;
