@@ -229,7 +229,7 @@
                 }
                 if ($hasToken) {
                     $jwt = $response["content"];
-                    $resp = array('token' =>$jwt);
+                    $resp = array('token' =>$jwt, 'id' => $userId);
                     $this->response(json_encode($resp), 200);
                 } else {
                     $key = self::nextToken();
@@ -364,7 +364,7 @@
         */ 
 
         function deleteVideo() {
-            if($this->getRequestMethod() != "DELETE") {
+            if($this->getRequestMethod() != "POST") {
                 $this->response('',406);
             }
             $id = (int)$this->_request['id'];
@@ -386,7 +386,7 @@
          */ 
 
         function deleteComment() {
-            if($this->getRequestMethod() != "DELETE") {
+            if($this->getRequestMethod() != "POST") {
                 $this->response('',406);
             }
             $id = (int)$this->_request['id'];
@@ -408,7 +408,7 @@
         */ 
 
         function deleteFromFavorites() {
-            if($this->getRequestMethod() != "DELETE") {
+            if($this->getRequestMethod() != "POST") {
                 $this->response('',406);
             }
             $userId = (int)$this->_request['user_id'];
@@ -417,8 +417,8 @@
             if (!$this->validateAuthorization($userId, $auth)) {
                 $this->response('',204);
             }
-            if($id > 0) {                
-                $query = "delete from videos where user_id=$userId and video_id=$videoId;";
+            if($videoId > 0) {                
+                $query = "delete from favorites where user_id=$userId and video_id=$videoId;";
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
                 $success = array('status' => "Success", "msg" => "Successfully deleted one record.");
                 $this->response(json_encode($success),200);
@@ -563,7 +563,6 @@
             $filePath = '../video/' . $_FILES['upfile']['name'];
 
             if ($_FILES['upfile']['name'] == "" or file_exists($filePath) ) {
-		error_log("HERE");
                 $this->response(json_encode(array("Error" => $_FILES['upfile']['name'])), 400);
             }
  
@@ -763,7 +762,7 @@
             }
 
             if ($id > 0) {
-                $query = "select * from history where user_id=$id;";    
+                $query = "select * from history where user_id=$id order by view_date desc;";    
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
                 if($r->num_rows > 0) {
                     $result = array();
