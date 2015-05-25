@@ -155,7 +155,15 @@
             if (!self::validateUser($user['username'], $user['password'])) {
                 $this->response('', 406);
             }
-
+	    
+	    // check if user already exists
+	    $username_to_check = $user['username'];
+	    $query = "select * from users where username='$username_to_check'";
+	    $r = $this->conn->query($query) or die($this->conn->error.__LINE__);	
+	    if ($r->num_rows > 0) {
+	    	$this->response('', 406);
+	    }	
+	
             $user['password'] = self::getHash($user['username'], $user['password']);
             $keys = array_keys($user);
             $columns = 'username, password';
@@ -235,7 +243,7 @@
                         "'$jwt','$expireDate');";
 
                     $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
-                    $resp = array('token' =>$jwt);
+                    $resp = array('token' => $jwt, 'id' => $userId);
                     $this->response(json_encode($resp), 200);
                 }
             } else {
@@ -254,13 +262,15 @@
          *  @return void
          */
         function logout() {
-            if ($this->getRequestMethod() != 'DELETE') {
+            if ($this->getRequestMethod() != 'POST') {
                 $this->response('', 406);
             }
-            $userId = (int)$this->_request['userId']; 
+	   	
+	    $userId = $_POST['user_id'];    
             $auth = $this->getAuthorization();
             if (!$this->validateAuthorization($userId, $auth)) {
-                $this->response('',204);
+		error_log("logout: token expired");                
+		$this->response('',204);
             }
             $query = "delete from tokens where user_id = $userId";
             $r = $this->conn->query($query) or die($this->conn->error.__LINE__); 
@@ -529,9 +539,10 @@
             }
             $auth = $this->getAuthorization();
             $video = json_decode($_POST['json'], true);
+	    $userId = $video['user_id'];
 
-            if (!$this->validateAuthorization($video['user_id'], $auth)) {
-                $this->response('', 400);
+            if (!$this->validateAuthorization($userId, $auth)) {
+                $this->response('', 406);
             }
 
             if (!isset($_FILES['upfile']['error']) || is_array($_FILES['upfile']['error'])) {
@@ -539,7 +550,7 @@
             }
 
             // You should also check filesize here. 
-            if ($_FILES['upfile']['size'] > 10000000) {
+            if ($_FILES['upfile']['size'] > 100000000000) {
                 $this->response(json_encode(array("Error" => 'Exceeded filesize limit.')), 400);
             }
          
@@ -549,20 +560,22 @@
                 $this->response(json_encode(array("Error" => "Invalid file format.")), 400);
             }
 
-            $filePath = 'uploads/' . $_FILES['upfile']['name'];
+            $filePath = '../video/' . $_FILES['upfile']['name'];
 
             if ($_FILES['upfile']['name'] == "" or file_exists($filePath) ) {
+		error_log("HERE");
                 $this->response(json_encode(array("Error" => $_FILES['upfile']['name'])), 400);
             }
  
             if (!move_uploaded_file($_FILES['upfile']['tmp_name'], $filePath)) {
                 $this->response(json_encode(array("Error" => "Failed to move uploaded file.")), 400);
             }
-            
+
             $video['path_of_video'] = $filePath;
-            $columns = 'user_id, title, path_of_video';
-            $values = $video['user_id'] . ',\'' . $video['title'] . '\',\'' . $video['path_of_video'] . "'";
+            $columns = 'user_id, title, description, path_of_video';
+            $values = $userId . ',\'' . $video['title'] . '\',\'' . $video['description'] . '\',\'' . $video['path_of_video'] . "'";
             $query = "insert into videos(". $columns . ") VALUES(".  $values . ");";
+	    error_log($query);
             
             $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
             $success = array('status' => "Success", "msg" => "Video Posted.", "data" => $video);
@@ -674,7 +687,7 @@
             }
             $id = (int)$this->_request['user_id'];
             if ($id > 0) {
-                $query = "select * videos where user_id=$id;";    
+                $query = "select * from videos where user_id=$id;";    
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__); 
                 if($r->num_rows > 0) {
                     $result = array();
