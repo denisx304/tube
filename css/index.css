@@ -1,0 +1,53 @@
+.left20
+{
+	margin-left: 5px;
+}
+
+.w49p
+{
+	width: 49%;
+}
+
+.my-videos,
+.history-videos
+{
+	background-color: white;
+	position: relative;
+	width: 25%;
+}
+
+.main-videos 
+{
+	background-color: white;
+	position: relative;
+	width: 45%;
+}
+
+.container
+{
+    height: 100%;
+	width: 100%;
+}
+
+.text-area
+{
+	background-color: #f5f5f5;
+	border: 1px solid #e7e8e7;
+	border-top: 0;
+	border-right: 0;
+	border-left: 0;
+	resize: none;
+	width: 97%;
+	height: 100px;
+}
+
+.mVideo-text,
+.hVideo-text
+{
+	font-size: 20px;
+}
+
+.MVideo-text 
+{
+	font-size: 30px;
+}
