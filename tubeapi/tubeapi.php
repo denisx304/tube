@@ -368,7 +368,16 @@
                 $this->response('',406);
             }
             $id = (int)$this->_request['id'];
-            if($id > 0) {                
+            if($id > 0) {
+		$query = "delete from comments where video_id=$id;";
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+		
+		$query = "delete from favorites where video_id=$id;";
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+
+		$query = "delete from history where video_id=$id;";
+                $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
+	                
                 $query = "delete from videos where id=$id;";
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
                 $success = array('status' => "Success", "msg" => "Successfully deleted one record.");
@@ -762,7 +771,7 @@
             }
 
             if ($id > 0) {
-                $query = "select * from history where user_id=$id order by view_date desc;";    
+                $query = "select * from videos where id in (select video_id from history where user_id=$id group by video_id order by view_date desc);";    
                 $r = $this->conn->query($query) or die($this->conn->error.__LINE__);
                 if($r->num_rows > 0) {
                     $result = array();

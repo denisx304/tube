@@ -57,6 +57,8 @@
 {
 	font-size: 13px;
 	display: inline-block;
+	width: 90%;
+	word-wrap: break-word;
 }
 
 .author

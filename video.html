@@ -10,7 +10,9 @@
 	<script charset="utf-8" type="text/javascript" src="js/jquery-1.11.3.js"></script>
 	<script charset="utf-8" type="text/javascript" src="js/jquery.simplemodal.js"></script>
 	<script charset="utf-8" type="text/javascript" src="js/jquery.autocomplete.js"></script>
+	<script charset="utf-8" type="text/javascript" src="js/search.js"></script>
 	<script charset="utf-8" type="text/javascript" src="js/video.js"></script>
+	<script charset="utf-8" type="text/javascript" src="js/header.js"></script>
 </head>
 
 <body>
@@ -24,18 +26,18 @@
 		</div>
 		
 		<div class='search-header item-header fleft search-text'>
-			<form class="pure-form">
-				<input type="text" class="pure-input-rounded top27 textBox-search left5" placeholder='Search'>
-				<button type="submit" class="pure-button top27 left5 button-secondary">Play</button>
-			</form>
+			<div class="pure-form">
+				<input type="text" id="search_box" class="pure-input-rounded top27 textBox-search left5" placeholder='Search'>
+				<button id="play_video" class="pure-button top27 left5 button-secondary">Play</button>
+			</div>
 		</div>
 
 		<div class='buttons-header item-header fleft'>
 			&nbsp;
-			<button class=" w120 top32 pure-button button-success">Login</button>
+			<button class=" w120 top32 pure-button button-success" id="login_button">Login</button>
 			<!--<button class="w19 top32 pure-button button-error ">Logout</button>-->
 			<!--<button class="w19 top32 pure-button button-warning">Register</button>-->
-			<button class="w120 top32 pure-button button-warning">Upload</button>
+			<button class="w120 top32 pure-button button-warning" id="upload_button" style="display: none;">Upload</button>
 		</div>
 		
 		<div class='clear'></div>
@@ -49,55 +51,62 @@
 		
 		<div class='related-videos pad fleft'>
 			<p class='hVideo-text mt10'>Videos from same user</p>
-			<div class='show-video'>
-				<a href="index.html" class='bold-font'>Video title</a>
-				<video controls class='show-video'>
-					<source src='video/testfile.mp4' type='video/mp4'>
-					Your browser does not support HTML 5 video.
-				</video>
-				
-				<div class='mt10'>
-					<div class='like-button fleft'></div>
-					<div class='dislike-button fleft'></div>
-					<div class='fright-text'>Number of likes/ dislikes</div>
-				</div>
-			</div>
-			<div class='clear'></div>
-			
-			<div class='show-video'>
-				<a href="index.html" class='bold-font'>Video title</a>
-				<video controls class='show-video'>
-					<source src='video/testfile.mp4' type='video/mp4'>
-					Your browser does not support HTML 5 video.
-				</video>
-				
-				<div class='mt10'>
-					<div class='like-button fleft'></div>
-					<div class='dislike-button fleft'></div>
-					<div class='fright-text'>Number of likes/ dislikes</div>
-				</div>
-			</div>
-			<div class='clear'></div>
-			
-			<div class='show-video'>
-				<a href="index.html" class='bold-font'>Video title</a>
-				<video controls class='show-video'>
-					<source src='video/testfile.mp4' type='video/mp4'>
-					Your browser does not support HTML 5 video.
-				</video>
-				
-				<div class='mt10'>
-					<div class='like-button fleft'></div>
-					<div class='dislike-button fleft'></div>
-					<div class='fright-text'>Number of likes/ dislikes</div>
-				</div>
-			</div>
-			<div class='clear'></div>
-			
 		</div>
 		<div class='clear'></div>
 	</div>
 	
+	<div style="display: none;">
+		<div class="login search-header fleft search-text h500">
+			<div class="pure-form login-buttons pad">
+				<table class="login_inputs_table">
+					<tr>
+						<th><input id="username_input" type="text" class="pure-input-rounded search_text_box" placeholder='Username'></th>
+					</tr>
+					<tr><td class='info-text'>User must have between 3 and 20 characters</td></tr>
+					<tr>
+						<th><input id="password_input" type="password" class="pure-input-rounded search_text_box" placeholder='Password'></th>
+					</tr>
+					<tr><td class='info-text'>Password must have at least 8 characters</td></tr>
+					<tr style="display: none;" id="confirm_password">
+						<th><input id="confirm_password_input" type="password" class="pure-input-rounded search_text_box" placeholder='Confirm password'></th>
+					</tr>
+				</table>
+				
+				<div class='login-buttons'>
+					<button id="login_register" class=" w120 mt10 pad fleft pure-button button-success">Login</button>
+					<button id="new_existing_user" class=" w120 mt10 pad fright pure-button button-success">New user</button>
+				</div>
+				<div class='clear'></div>
+			</div>
+		</div>
+	</div>
+	<div class='clear'></div>
+	
+	<div style="display: none;">
+		<div class='upload search-header fleft search-text h500'>
+			<div class="pure-form login-buttons pad">
+				<table class="login_inputs_table">
+					<tr>
+						<th><input id="video_title" type="text" class="pure-input-rounded search_text_box" placeholder='Title'></th>
+					</tr>
+					<tr>
+						<th><textarea id="video_description" class="pure-input-rounded search_text_box" placeholder='Description' rows="5"></textarea></th>
+					</tr>
+					<tr>
+						<th><input id="my_video" type="file" class="upload-file" placeholder='Confirm password'></th>
+					</tr>
+				</table>
+				
+				<div class='login-buttons'>
+					<button id="upload_video" class="w120 mt10 pad fleft pure-button button-success">Upload</button>
+				</div>
+				<div class='clear'></div>
+			</div>
+		</div>
+	</div>
+	<div class='clear'></div>
+	
+	<div class='clear'></div>
 
 </body>
 
