@@ -109,7 +109,7 @@ class TubeApiTest extends PHPUnit_Framework_TestCase {
      */
 
     public function testUpload() {
-        $filename = "uploads/testfile.mp4";
+        $filename = "../video/testfile.mp4";
         if (file_exists($filename)) {
             unlink($filename);
         }
